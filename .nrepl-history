@@ -1,0 +1,18 @@
+(- 5)
+abs #(max % (- %)
+(let [abs #(max % (- %)] (abs -10))
+(let [abs #(max % (- %))] (abs -10))
+(let [abs #(max % (- %))] (abs 10))
+(defn rgb2hex [r g b]
+  (.substr (.toString
+    (bit-or
+      (bit-shift-left 1 24)
+      (bit-shift-left r 16)
+      (bit-shift-left g 8)
+      b) 16)  1))
+(rgb2hex 16 16 16)
+  (defn hex-color [& args]
+        (apply str "#" (map #(.toString % 16) args))
+(defn hex-color [& args]
+        (apply str "#" (map #(.toString % 16) args)))
+(hex-color 16 16 16)
