@@ -1,6 +1,6 @@
-# address-book
+# colors-sliders
 
-A [Hoplon][3] project designed to...well, that part is up to you.
+A [Hoplon][3] port of Mark Harwood's [VueJS Colour Conversion Example][4].
 
 ## Dependencies
 
@@ -35,8 +35,9 @@ A [Hoplon][3] project designed to...well, that part is up to you.
 
 ## License
 
-Copyright © 2016, **Your Name Goes Here**
+Copyright © 2016, Jan-Felix Wittmann
 
 [1]: http://boot-clj.com
 [2]: http://localhost:8000
 [3]: http://hoplon.io
+[4]: http://jsfiddle.net/Phunky/xhhmmrpo/
