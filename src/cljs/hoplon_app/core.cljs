@@ -6,12 +6,13 @@
      :refer-macros [defelem]]
     [javelin.core
      :refer [cell]
-     :refer-macros [cell= dosync defc defc=]]
+     :refer-macros [cell= defc defc=]]
     [hoplon-app.util :refer [rgb2hsl hsl2rgb trunc2 percent]]
-    [hoplon-app.util.style :as s]))
+    [hoplon-app.util.style :as s]
+    [hoplon.jquery]))
 
 
-(enable-console-print!)
+;;(enable-console-print!)
 
 (defc rgb {
     :r 255
@@ -26,7 +27,8 @@
 (declare r' g' b')
 (declare h' s' l')
 
-;(cell= (println rgb hsl))
+;;(cell= (println rgb hsl))
+
 (defn _rgb [value comp]
   (swap! rgb assoc comp value)
   (reset! hsl (rgb2hsl @r' @g' @b')))
@@ -59,7 +61,14 @@
     (h/div
       (h/label
         (h/text lbl-text))
-      (h/input :type "range" :style style :min min :max max :step step :value value-fc :input #(reset! value-fc @%))
+      (h/input
+        :type "range"
+        :style style
+        :min min
+        :max max
+        :step step
+        :value value-fc
+        :input #(reset! value-fc @%))
       (h/label (h/text view)))))
 
 (defelem range-input-percent [attr]
@@ -162,4 +171,4 @@
   (js/jQuery #(.replaceWith (js/jQuery "#app") (home))))
 
 (defn init! []
-(mount-root))
+  (mount-root))
