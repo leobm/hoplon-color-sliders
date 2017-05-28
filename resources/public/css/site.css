@@ -118,3 +118,17 @@ input[type='range']:focus {
   outline: none;
   -box-shadow: inset 0 1px .25em #eee;
 }
+
+input[type='text'] {
+  background-color:white;
+  -webkit-transition: background-color 200ms linear;
+  -ms-transition: background-color 200ms linear;
+  transition: background-color 200ms linear;
+}
+
+input[type='text'].error {
+  background-color:red;
+  -webkit-transition: background-color 200ms linear;
+  -ms-transition: background-color 200ms linear;
+  transition: background-color 200ms linear;
+}

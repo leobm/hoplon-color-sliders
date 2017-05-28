@@ -7,34 +7,34 @@
     [javelin.core
      :refer [cell]
      :refer-macros [cell= defc defc=]]
-    [hoplon-app.util :refer [rgb2hsl hsl2rgb trunc2 percent]]
+    [hoplon-app.util :refer [trunc2 percent parse-int]]
     [hoplon-app.util.style :as s]
-    [hoplon.jquery]))
+    [hoplon-app.util.colors :refer [rgb2hsl hsl2rgb]]
+    [hoplon.jquery]
+    [clojure.string :as str]))
 
 
 ;;(enable-console-print!)
 
-(defc rgb {
-    :r 255
+(defc rgb
+  { :r 255
     :g 0
-    :b 0 })
+    :b 0})
 
-(defc hsl {
-    :h 0
+(defc hsl
+  { :h 0
     :s 1.0
-    :l 0.5 })
+    :l 0.5})
 
 (declare r' g' b')
 (declare h' s' l')
 
-;;(cell= (println rgb hsl))
-
-(defn _rgb [value comp]
-  (swap! rgb assoc comp value)
+(defn _rgb [value c]
+  (swap! rgb assoc c value)
   (reset! hsl (rgb2hsl @r' @g' @b')))
 
-(defn _hsl [value comp]
-  (swap! hsl assoc comp value)
+(defn _hsl [value c]
+  (swap! hsl assoc c value)
   (reset! rgb (hsl2rgb @h' @s' @l')))
 
 (defc= r' (:r rgb) #(_rgb % :r))
@@ -44,31 +44,53 @@
 (defc= s' (:s hsl) #(_hsl % :s))
 (defc= l' (:l hsl) #(_hsl % :l))
 
-(defc= hexString (s/hex r' g' b'))
-(defc= rgbString (s/rgb r' g' b'))
-(defc= hslString (s/hsl h' (percent s') (percent l')))
-
-(defelem color-box [{:keys [color-fc] :as attr} _]
-    (h/div :style "margin:4px; float:left; min-width: 150px; padding: 1.5em;"
-         :css (cell= { :background-color color-fc } )
-      (h/input :type "text" :value color-fc)))
+(defc= hexString (s/hex r' g' b') #(reset! rgb (s/parse-hex %)))
+(defc= rgbString (s/rgb r' g' b') #())
+(defc= hslString (s/hsl h' (percent s') (percent l')) #())
 
 
-(defelem range-text-input [{
-  :keys [min max value-fc view-fc]
-  :or { view-fc #(cell= value-fc) }} _]
 
-  (let [view (view-fc value-fc)]
+(defelem text-input
+  [{ :keys [value-fc view-fc converter validator]
+     :or { view-fc   #(cell= value-fc)
+           converter identity
+           validator #(constantly true) }
+     :as attr } _]
+
+  (let [view-result (view-fc value-fc)
+        error?      (cell false)
+        _           (add-watch value-fc :watch-value
+                               #(reset! error? false))
+        do-change   #(let [new-value (converter @%)
+                           valid? (validator new-value)]
+                       (when valid?
+                         (reset! value-fc new-value))
+                       (reset! error? (not valid?)))]
+
     (h/input
-      :type "text"
-      :value view
-      :size 3)))
+      (assoc attr
+        :type "text"
+        :value view-result
+        :class (cell= {:error  error?})
+        :change do-change))))
 
 
-(defelem range-input [{
-  :keys [lbl-text min max step value-fc style view-fc]
-  :or { view-fc #(cell= value-fc) }
-  :as attr} _]
+(defelem range-number-input
+  [{ :keys [value-fc view-fc min max converter]
+     :or { view-fc   #(cell= value-fc)
+           converter #(parse-int %) }} _]
+
+  (text-input
+      :size 3
+      :value-fc value-fc
+      :viewfn-fc view-fc
+      :converter converter
+      :validator #(and (>= % min) (<= % max))))
+
+
+(defelem range-input
+  [{ :keys [lbl-text min max step value-fc style view-fc convert]
+     :as attr} _]
     (h/div
       (h/label
         (h/text lbl-text))
@@ -80,13 +102,21 @@
         :step step
         :value value-fc
         :input #(reset! value-fc @%))
-      (range-text-input
-        :value-fc value-fc
-        :view-fc view-fc)))
+      (range-number-input attr)))
+
 
 (defelem range-input-percent [attr]
-  (range-input (assoc attr :view-fc #(cell= (str (percent %) "%")))))
+  (range-input (assoc attr
+                 :view-fc #(cell= (str (percent %) "%"))
+                 :converter #(/ (parse-int %) 100))))
 
+
+(defelem color-box [{:keys [color-fc validator] :as attr} _]
+    (h/div :style "margin:4px; float:left; min-width: 150px; padding: 1.5em;"
+         :css (cell= { :background-color color-fc})
+      (text-input
+        :value-fc color-fc
+        :validator validator)))
 
 (defn linear-gradient-all [gradient]
   (reduce (fn [acc prefix] (str acc "background: " prefix gradient  ";")) "" ["-moz-" "-webkit-" ""]))
@@ -137,17 +167,17 @@
 
 
 (defelem range-red []
-  (let [style (cell= (linear-gradient-rgb-all [[0 g' b'][255 g' b']]) )]
+  (let [style (cell= (linear-gradient-rgb-all [[0 g' b'][255 g' b']]))]
       (range-input :lbl-text "R" :style style :min 0 :max 255 :value-fc r')))
 
 
 (defelem range-green []
-  (let [style (cell= (linear-gradient-rgb-all [[r' 0  b'][r' 255 b']]) )]
+  (let [style (cell= (linear-gradient-rgb-all [[r' 0  b'][r' 255 b']]))]
     (range-input :lbl-text "G" :style style :min 0 :max 255 :value-fc g')))
 
 
 (defelem range-blue []
-  (let [style (cell= (linear-gradient-rgb-all [[r' g'  9][r' g' 255]]) )]
+  (let [style (cell= (linear-gradient-rgb-all [[r' g'  9][r' g' 255]]))]
     (range-input :lbl-text "B" :style style :min 0 :max 255 :value-fc b')))
 
 
@@ -176,8 +206,8 @@
       (range-hue)
       (range-saturation)
       (range-luminosity)
-      (color-box :color-fc hexString)
-      (color-box :color-fc rgbString)
+      (color-box :color-fc hexString :validator s/match-hex)
+      (color-box :color-fc rgbString :validator s/match-rgb)
       (color-box :color-fc hslString))))
 
 (defn mount-root []
@@ -185,3 +215,12 @@
 
 (defn init! []
   (mount-root))
+
+
+#_(re-find #"^[^0-9%]+$" "3a")
+
+#_(defn check [e]
+    (print (.fromCharCode js/String (.-which  e))))
+
+#_(defn target-value [e]
+    (-> e .-target .-value))
