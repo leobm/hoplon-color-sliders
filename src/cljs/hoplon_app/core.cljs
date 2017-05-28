@@ -53,11 +53,22 @@
          :css (cell= { :background-color color-fc } )
       (h/input :type "text" :value color-fc)))
 
+
+(defelem range-text-input [{
+  :keys [min max value-fc view-fc]
+  :or { view-fc #(cell= value-fc) }} _]
+
+  (let [view (view-fc value-fc)]
+    (h/input
+      :type "text"
+      :value view
+      :size 3)))
+
+
 (defelem range-input [{
   :keys [lbl-text min max step value-fc style view-fc]
   :or { view-fc #(cell= value-fc) }
   :as attr} _]
-  (let [view (view-fc value-fc)]
     (h/div
       (h/label
         (h/text lbl-text))
@@ -69,7 +80,9 @@
         :step step
         :value value-fc
         :input #(reset! value-fc @%))
-      (h/label (h/text view)))))
+      (range-text-input
+        :value-fc value-fc
+        :view-fc view-fc)))
 
 (defelem range-input-percent [attr]
   (range-input (assoc attr :view-fc #(cell= (str (percent %) "%")))))
