@@ -1,4 +1,7 @@
-/.boot
 /target
+/js
 /.nrepl-port
 /.repl-history
+figwheel_server.log
+.lein-env
+.lein-repl-history

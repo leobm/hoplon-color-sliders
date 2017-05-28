@@ -1,12 +1,38 @@
-(ns app.utils)
+(ns hoplon-app.util)
 
-(defn js-apply [f target args]
-  (.apply f target (to-array args)))
+(defn parse-color [str]
+  { :hex (re-matches #"#[0-9a-f]{3,6}" str)
+    :rgb (re-matches #"rgb[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?\)" str)
+    :hsl (re-matches #"hsl[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)%[\s+]?,[\s+]?(\d+)%[\s+]?\)" str)})
 
-(defn log
-  "Display messages to the console."
-  [& args]
-  (js-apply (.-log js/console) js/console args))
+
+(defn floor [n]
+  #?(:cljs (.floor js/Math n)
+     :clj  (int (Math/floor n))))
+
+
+(defn round [n]
+  #?(:cljs (.round js/Math n)
+     :clj  (Math/round n)))
+
+(defn parse-float [s]
+  #?(:cljs (js/parseFloat s)
+     :clj (Float/parseFloat s)))
+
+(defn parse-int [s]
+   #?(:cljs (js/parseInt s)
+      :clj (Integer/parseInt s)))
+
+(defn trunc2 [s]
+  #?(:cljs (.toFixed (parse-float s) 2)
+     :clj  (String/format java.util.Locale/US "%.2f" (into-array [(parse-float s)]))))
+
+
+(defn abs [n]
+  (max n (- n)))
+
+(defn percent [n]
+  (floor (* n 100)))
 
 (defn rgb2hsl [r g b]
   (let [r (/ r 255)
@@ -26,18 +52,16 @@
         h (/ h 6)
         h (if (= max' min') 0 h)
         s (if (= max' min') 0 s)
-        h (.floor js/Math (* h 360))]
-      {:h h :s s :l l}))
+        h (floor (* h 360))]
+    {:h h :s s :l l}))
+
 
 (defn hsl2rgb [h s l]
-  (let [abs #(max % (- %))
-        h' (/ h 60)
+  (let [h' (/ h 60)
         h' (if (< h' 0) h' (- 6 (mod (- h') 6)))
         h' (mod h' 6)
         s' (max 0 (min 1 s))
         l' (max 0 (min 1 l))
-
-        ;; (1 - Math.abs((2 * l) - 1)) * s
         c (* (- 1 (abs (- (* 2 l') 1)) ) s')
         x (* c (- 1 (abs (- (mod h' 2) 1))))
         r (cond
@@ -62,23 +86,8 @@
             (< h' 5) c
             :else x)
         m (- l' (/ c 2))
-        r' (.round js/Math (* (+ r m) 255))
-        g' (.round js/Math (* (+ g m) 255))
-        b' (.round js/Math (* (+ b m) 255))]
+        r' (round (* (+ r m) 255))
+        g' (round (* (+ g m) 255))
+        b' (round (* (+ b m) 255))]
         {:r r' :g g' :b b'}))
 
-(defn trunc [num]
-  (.floor js/Math num))
-
-(defn fixed2 [num]
-  (.toFixed (js/parseFloat num) 2 ))
-
-(defn hexString [r g b]
-  (let [hex #(.slice (str "00" (.toString (js/parseInt %) 16) ) (- 2)) ]
-    (str "#"  (hex r) (hex g) (hex b))))
-
-(defn rgbString [r g b]
-  (str "rgb("r "," g "," b ")"))
-
-(defn hslString [h s l]
-  (str "hsl("h "," (trunc (* s 100)) "%," (trunc (* l 100)) "%)"))
