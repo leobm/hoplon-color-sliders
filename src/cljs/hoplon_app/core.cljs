@@ -2,12 +2,13 @@
   (:require
     [hoplon.core
      :as h
-     :include-macros true]
+     :include-macros true
+     :refer-macros [defelem]]
     [javelin.core
      :refer [cell]
      :refer-macros [cell= dosync defc defc=]]
-    [hoplon-app.util :refer [rgb2hsl hsl2rgb trunc percent]]
-    [hoplon-app.style :as s]))
+    [hoplon-app.util :refer [rgb2hsl hsl2rgb trunc2 percent]]
+    [hoplon-app.util.style :as s]))
 
 
 (enable-console-print!)
@@ -59,7 +60,7 @@
       (h/label
         (h/text lbl-text))
       (h/input :type "range" :style style :min min :max max :step step :value value-fc :input #(reset! value-fc @%))
-      (h/label (text view)))))
+      (h/label (h/text view)))))
 
 (defelem range-input-percent [attr]
   (range-input (assoc attr :view-fc #(cell= (str (percent %) "%")))))
@@ -86,7 +87,7 @@
     (apply s/linear-gradient "left" rng)))
 
 
-(defn linear-gradient-hsl-hue [s l]
+(defn linear-gradient-hsl-hue-all [s l]
   (linear-gradient-all (linear-gradient-hsl-hue s l)))
 
 
@@ -146,7 +147,7 @@
 (h/defelem home []
   (h/div
     :id "app"
-    (form
+    (h/form
       (range-red)
       (range-green)
       (range-blue)
