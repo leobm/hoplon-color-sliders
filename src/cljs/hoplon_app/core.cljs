@@ -48,8 +48,6 @@
 (defc= rgbString (s/rgb r' g' b') #())
 (defc= hslString (s/hsl h' (percent s') (percent l')) #())
 
-
-
 (defelem text-input
   [{ :keys [value-fc view-fc converter validator]
      :or { view-fc   #(cell= value-fc)
@@ -79,11 +77,10 @@
   [{ :keys [value-fc view-fc min max converter]
      :or { view-fc   #(cell= value-fc)
            converter #(parse-int %) }} _]
-
   (text-input
       :size 3
       :value-fc value-fc
-      :viewfn-fc view-fc
+      :view-fc view-fc
       :converter converter
       :validator #(and (>= % min) (<= % max))))
 
@@ -91,7 +88,7 @@
 (defelem range-input
   [{ :keys [lbl-text min max step value-fc style view-fc convert]
      :as attr} _]
-    (h/div
+    (h/div :class "slider-container"
       (h/label
         (h/text lbl-text))
       (h/input
@@ -208,7 +205,7 @@
       (range-luminosity)
       (color-box :color-fc hexString :validator s/match-hex)
       (color-box :color-fc rgbString :validator s/match-rgb)
-      (color-box :color-fc hslString))))
+      (color-box :color-fc hslString :validator s/match-hsl))))
 
 (defn mount-root []
   (js/jQuery #(.replaceWith (js/jQuery "#app") (home))))

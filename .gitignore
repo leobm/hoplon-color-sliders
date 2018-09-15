@@ -5,3 +5,6 @@
 figwheel_server.log
 .lein-env
 .lein-repl-history
+hoplon-app.iml
+
+.idea/
