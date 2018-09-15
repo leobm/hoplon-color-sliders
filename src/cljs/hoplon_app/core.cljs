@@ -45,8 +45,8 @@
 (defc= l' (:l hsl) #(_hsl % :l))
 
 (defc= hexString (s/hex r' g' b') #(reset! rgb (s/parse-hex %)))
-(defc= rgbString (s/rgb r' g' b') #())
-(defc= hslString (s/hsl h' (percent s') (percent l')) #())
+(defc= rgbString (s/rgb r' g' b') #(reset! rgb (s/parse-rgb %)))
+(defc= hslString (s/hsl h' (percent s') (percent l')) #(reset! hsl (s/parse-hsl %)))
 
 (defelem text-input
   [{ :keys [value-fc view-fc converter validator]
@@ -114,6 +114,21 @@
       (text-input
         :value-fc color-fc
         :validator validator)))
+
+(defelem hex-color-box []
+         (color-box
+           :color-fc hexString
+           :validator s/match-hex))
+
+(defelem rgb-color-box []
+         (color-box
+           :color-fc rgbString
+           :validator s/match-rgb))
+
+(defelem hsl-color-box []
+     (color-box
+       :color-fc hslString
+       :validator s/match-hsl))
 
 (defn linear-gradient-all [gradient]
   (reduce (fn [acc prefix] (str acc "background: " prefix gradient  ";")) "" ["-moz-" "-webkit-" ""]))
@@ -203,9 +218,9 @@
       (range-hue)
       (range-saturation)
       (range-luminosity)
-      (color-box :color-fc hexString :validator s/match-hex)
-      (color-box :color-fc rgbString :validator s/match-rgb)
-      (color-box :color-fc hslString :validator s/match-hsl))))
+      (hex-color-box)
+      (rgb-color-box)
+      (hsl-color-box))))
 
 (defn mount-root []
   (js/jQuery #(.replaceWith (js/jQuery "#app") (home))))
